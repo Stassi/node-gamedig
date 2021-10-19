@@ -71,6 +71,11 @@
   "cpu": [
     "x64"
   ],
+  "prettier": {
+    "endOfLine": "auto",
+    "semi": false,
+    "singleQuote": true
+  },
   "private": true,
   "sideEffects": false
 }
