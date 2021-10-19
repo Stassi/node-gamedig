@@ -33,7 +33,6 @@
     "bin/gamedig.js",
     "lib/",
     "protocols/",
-    "games.txt",
     "LICENSE",
     "README.md"
   ],
