@@ -52,7 +52,7 @@
     "minimist": "^1.2.5",
     "moment": "^2.27.0",
     "punycode": "^2.1.1",
-    "varint": "^5.0.0"
+    "varint": "^6.0.0"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.21",
