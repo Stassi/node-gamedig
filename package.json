@@ -44,7 +44,9 @@
   "repository": "github:Stassi/node-gamedig",
   "scripts": {
     "format:check": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "test": "npm run test:unit && npm run format:check && package-check",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
