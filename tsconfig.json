@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "module": "ES2020",
     "moduleResolution": "node",
-    "outDir": "out",
+    "outDir": "lib",
     "strict": true,
     "target": "ES2020"
   },
