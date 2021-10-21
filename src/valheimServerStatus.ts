@@ -4,18 +4,19 @@ import type {
   Type as LegacyQueryType,
 } from 'gamedig'
 // @ts-ignore
-import gamedigLegacy from './legacy/Gamedig'
+import Gamedig from './legacy/Gamedig'
 
 type PromiseQueryResult = Promise<QueryResult>
-type Gamedig = {
+
+const {
+  query: serverStatus,
+}: {
   query: (
     options: Omit<LegacyQueryOptions, 'type'> & {
       type: LegacyQueryType | 'valheim'
     }
   ) => PromiseQueryResult
-}
-
-const { query: serverStatus }: Gamedig = gamedigLegacy
+} = Gamedig
 
 export default function valheimServerStatus(
   host: string,
