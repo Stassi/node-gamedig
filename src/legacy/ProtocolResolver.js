@@ -1,23 +1,8 @@
-const Path = require('path'),
-  fs = require('fs'),
-  Core = require('./protocols/core')
+import valveProtocol from './ValveProtocol.js'
 
-class ProtocolResolver {
-  constructor() {
-    this.protocolDir = Path.normalize(__dirname + '/../legacy/protocols')
-  }
-
-  /**
-   * @returns Core
-   */
+export default class ProtocolResolver {
   create(protocolId) {
-    protocolId = Path.basename(protocolId)
-    const path = this.protocolDir + '/' + protocolId
-    if (!fs.existsSync(path + '.js'))
-      throw Error('Protocol definition file missing: ' + type)
-    const protocol = require(path)
-    return new protocol()
+    if (protocolId === 'valve') return new valveProtocol()
+    else throw new Error('unsupported protocol')
   }
 }
-
-module.exports = ProtocolResolver

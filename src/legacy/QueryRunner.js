@@ -1,6 +1,6 @@
-const GameResolver = require('./GameResolver'),
-  ProtocolResolver = require('./ProtocolResolver'),
-  GlobalUdpSocket = require('./GlobalUdpSocket')
+import GameResolver from './GameResolver.js'
+import GlobalUdpSocket from './GlobalUdpSocket.js'
+import ProtocolResolver from './ProtocolResolver.js'
 
 const defaultOptions = {
   socketTimeout: 2000,
@@ -8,7 +8,7 @@ const defaultOptions = {
   maxAttempts: 1,
 }
 
-class QueryRunner {
+export default class QueryRunner {
   constructor(runnerOpts = {}) {
     this.udpSocket = new GlobalUdpSocket({
       port: runnerOpts.listenUdpPort,
@@ -121,5 +121,3 @@ class QueryRunner {
     return await core.runOnceSafe()
   }
 }
-
-module.exports = QueryRunner

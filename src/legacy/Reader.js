@@ -1,8 +1,7 @@
-const Iconv = require('iconv-lite'),
-  Long = require('long'),
-  Core = require('./protocols/core'),
-  Buffer = require('buffer'),
-  Varint = require('varint')
+import Buffer from 'node:buffer'
+import Iconv from 'iconv-lite'
+import Long from 'long'
+import Varint from 'varint'
 
 function readUInt64BE(buffer, offset) {
   const high = buffer.readUInt32BE(offset)
@@ -15,7 +14,7 @@ function readUInt64LE(buffer, offset) {
   return new Long(low, high, true)
 }
 
-class Reader {
+export default class Reader {
   /**
    * @param {Core} query
    * @param {Buffer} buffer
@@ -167,5 +166,3 @@ class Reader {
     return this.i >= this.buffer.length
   }
 }
-
-module.exports = Reader

@@ -29,7 +29,7 @@ class Players extends Array {
   }
 }
 
-class Results {
+export default class Results {
   name = ''
   map = ''
   password = false
@@ -47,5 +47,3 @@ class Results {
     this.bots.setNum(num)
   }
 }
-
-module.exports = Results

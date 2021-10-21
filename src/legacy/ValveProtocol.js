@@ -1,6 +1,7 @@
-const Bzip2 = require('compressjs').Bzip2,
-  Core = require('./core'),
-  Results = require('../Results')
+import compressjs from 'compressjs'
+import CoreProtocol from './CoreProtocol.js'
+
+const Bzip2 = compressjs.Bzip2
 
 const AppId = {
   Squad: 393380,
@@ -9,7 +10,7 @@ const AppId = {
   DayZ: 221100,
 }
 
-class Valve extends Core {
+export default class ValveProtocol extends CoreProtocol {
   constructor() {
     super()
 
@@ -553,5 +554,3 @@ class Valve extends Core {
     )
   }
 }
-
-module.exports = Valve

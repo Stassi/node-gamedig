@@ -1,4 +1,4 @@
-class Promises {
+export default class Promises {
   static createTimeout(timeoutMs, timeoutMsg) {
     let cancel = null
     const wrapped = new Promise((res, rej) => {
@@ -13,5 +13,3 @@ class Promises {
     return wrapped
   }
 }
-
-module.exports = Promises

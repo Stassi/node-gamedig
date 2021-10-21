@@ -1,4 +1,4 @@
-class HexUtil {
+export default class HexUtil {
   /** @param {Buffer} buffer */
   static debugDump(buffer) {
     let hexLine = ''
@@ -20,5 +20,3 @@ class HexUtil {
     return out
   }
 }
-
-module.exports = HexUtil

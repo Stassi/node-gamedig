@@ -1,9 +1,9 @@
-const dgram = require('dgram')
-const HexUtil = require('./HexUtil')
-const Logger = require('./Logger')
-const util = require('util')
+import dgram from 'node:dgram'
+import util from 'node:util'
+import HexUtil from './HexUtil.js'
+import Logger from './Logger.js'
 
-class GlobalUdpSocket {
+export default class GlobalUdpSocket {
   constructor({ port }) {
     this.socket = null
     this.callbacks = new Set()
@@ -70,5 +70,3 @@ class GlobalUdpSocket {
     this.logger.debugEnabled = this.debuggingCallbacks.size > 0
   }
 }
-
-module.exports = GlobalUdpSocket

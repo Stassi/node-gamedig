@@ -1,8 +1,8 @@
-const QueryRunner = require('./QueryRunner')
+import QueryRunner from './QueryRunner.js'
 
 let singleton = null
 
-class Gamedig {
+export default class Gamedig {
   constructor(runnerOpts) {
     this.queryRunner = new QueryRunner(runnerOpts)
   }
@@ -19,5 +19,3 @@ class Gamedig {
     return await Gamedig.getInstance().query(...args)
   }
 }
-
-module.exports = Gamedig

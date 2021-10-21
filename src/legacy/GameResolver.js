@@ -296,7 +296,7 @@ const lines = [
   '',
 ]
 
-class GameResolver {
+export default class GameResolver {
   constructor() {
     const loaded = this._readGames()
     this.gamesByKey = loaded.gamesByKey
@@ -397,5 +397,3 @@ class GameResolver {
     return out
   }
 }
-
-module.exports = GameResolver

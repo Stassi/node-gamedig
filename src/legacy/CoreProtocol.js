@@ -1,16 +1,16 @@
-const EventEmitter = require('events').EventEmitter,
-  net = require('net'),
-  Reader = require('../reader'),
-  HexUtil = require('../HexUtil'),
-  got = require('got'),
-  Promises = require('../Promises'),
-  Logger = require('../Logger'),
-  DnsResolver = require('../DnsResolver'),
-  Results = require('../Results')
+import { EventEmitter } from 'node:events'
+import got from 'got'
+import net from 'node:net'
+import DnsResolver from './DnsResolver.js'
+import Reader from './Reader.js'
+import Results from './Results.js'
+import HexUtil from './HexUtil.js'
+import Logger from './Logger.js'
+import Promises from './Promises.js'
 
 let uid = 0
 
-class Core extends EventEmitter {
+export default class CoreProtocol extends EventEmitter {
   constructor() {
     super()
     this.encoding = 'utf8'
@@ -366,5 +366,3 @@ class Core extends EventEmitter {
     this.logger.debug(...args)
   }
 }
-
-module.exports = Core

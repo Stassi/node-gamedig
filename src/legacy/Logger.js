@@ -1,6 +1,6 @@
-const HexUtil = require('./HexUtil')
+import HexUtil from './HexUtil.js'
 
-class Logger {
+export default class Logger {
   constructor() {
     this.debugEnabled = false
     this.prefix = ''
@@ -43,5 +43,3 @@ class Logger {
     return out
   }
 }
-
-module.exports = Logger

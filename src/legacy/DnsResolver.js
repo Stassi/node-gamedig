@@ -1,11 +1,11 @@
-const dns = require('dns'),
-  Logger = require('./Logger'),
-  util = require('util'),
-  dnsLookupAsync = util.promisify(dns.lookup),
-  dnsResolveAsync = util.promisify(dns.resolve),
-  punycode = require('punycode')
+import dns from 'node:dns'
+import punycode from 'punycode'
+import util from 'node:util'
 
-class DnsResolver {
+const dnsLookupAsync = util.promisify(dns.lookup),
+  dnsResolveAsync = util.promisify(dns.resolve)
+
+export default class DnsResolver {
   /**
    * @param {Logger} logger
    */
@@ -75,5 +75,3 @@ class DnsResolver {
     return { address: address }
   }
 }
-
-module.exports = DnsResolver
