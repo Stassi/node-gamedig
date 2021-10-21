@@ -16,6 +16,7 @@ export default class QueryRunner {
     this.gameResolver = new GameResolver()
     this.protocolResolver = new ProtocolResolver()
   }
+
   async run(userOptions) {
     for (const key of Object.keys(userOptions)) {
       const value = userOptions[key]
