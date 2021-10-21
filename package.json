@@ -36,7 +36,7 @@
     "LICENSE",
     "README.md"
   ],
-  "main": "src/legacy/index.js",
+  "main": "src/legacy/Gamedig.js",
   "type": "module",
   "bin": "bin/legacyCLI.mjs",
   "repository": "github:Stassi/node-gamedig",
