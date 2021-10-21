@@ -1,10 +1,10 @@
 const Path = require('path'),
   fs = require('fs'),
-  Core = require('../protocols/core')
+  Core = require('./protocols/core')
 
 class ProtocolResolver {
   constructor() {
-    this.protocolDir = Path.normalize(__dirname + '/../protocols')
+    this.protocolDir = Path.normalize(__dirname + '/../legacy/protocols')
   }
 
   /**

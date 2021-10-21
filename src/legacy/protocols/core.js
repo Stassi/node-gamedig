@@ -1,12 +1,12 @@
 const EventEmitter = require('events').EventEmitter,
   net = require('net'),
-  Reader = require('../lib/reader'),
-  HexUtil = require('../lib/HexUtil'),
+  Reader = require('../reader'),
+  HexUtil = require('../HexUtil'),
   got = require('got'),
-  Promises = require('../lib/Promises'),
-  Logger = require('../lib/Logger'),
-  DnsResolver = require('../lib/DnsResolver'),
-  Results = require('../lib/Results')
+  Promises = require('../Promises'),
+  Logger = require('../Logger'),
+  DnsResolver = require('../DnsResolver'),
+  Results = require('../Results')
 
 let uid = 0
 

@@ -4,7 +4,7 @@ import type {
   Type as LegacyQueryType,
 } from 'gamedig'
 // @ts-ignore
-import gamedigLegacy from '../lib'
+import gamedigLegacy from './legacy'
 
 type PromiseQueryResult = Promise<QueryResult>
 type Gamedig = {

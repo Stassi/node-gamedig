@@ -31,12 +31,12 @@
   ],
   "files": [
     "bin/gamedig.js",
-    "lib/",
-    "protocols/",
+    "src/legacy/",
+    "src/legacy/protocols/",
     "LICENSE",
     "README.md"
   ],
-  "main": "lib/index.js",
+  "main": "src/legacy/index.js",
   "bin": {
     "gamedig": "bin/gamedig.js"
   },

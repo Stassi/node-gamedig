@@ -1,6 +1,6 @@
 const Iconv = require('iconv-lite'),
   Long = require('long'),
-  Core = require('../protocols/core'),
+  Core = require('./protocols/core'),
   Buffer = require('buffer'),
   Varint = require('varint')
 

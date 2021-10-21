@@ -1,6 +1,6 @@
 const Bzip2 = require('compressjs').Bzip2,
   Core = require('./core'),
-  Results = require('../lib/Results')
+  Results = require('../Results')
 
 const AppId = {
   Squad: 393380,

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs'),
-  GameResolver = require('../lib/GameResolver'),
+  GameResolver = require('../src/legacy/GameResolver'),
   gameResolver = new GameResolver()
 
 const generated = gameResolver.printReadme()
