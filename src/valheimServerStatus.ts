@@ -4,28 +4,26 @@ import type {
   Type as LegacyQueryType,
 } from 'gamedig'
 // @ts-ignore
-import Gamedig from './legacy/Gamedig'
+import QueryRunner from './legacy/QueryRunner.js'
 
 type PromiseQueryResult = Promise<QueryResult>
 
-const {
-  query: serverStatus,
-}: {
-  query: (
-    options: Omit<LegacyQueryOptions, 'type'> & {
-      type: LegacyQueryType | 'valheim'
-    }
-  ) => PromiseQueryResult
-} = Gamedig
+function serverStatus(
+  userOptions: Omit<LegacyQueryOptions, 'type'> & {
+    type: LegacyQueryType | 'valheim'
+  }
+): PromiseQueryResult {
+  return new QueryRunner(undefined).run(userOptions)
+}
 
 export default function valheimServerStatus(
   host: string,
   port: number = 10011
 ): PromiseQueryResult {
   return serverStatus({
-    givenPortOnly: true,
-    type: 'valheim',
     host,
     port,
+    givenPortOnly: true,
+    type: 'valheim',
   })
 }
