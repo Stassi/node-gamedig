@@ -30,7 +30,6 @@
     "GameDig Contributors (https://github.com/gamedig/node-gamedig)"
   ],
   "files": [
-    "bin/legacyCLI.mjs",
     "src/legacy/",
     "src/legacy/protocols/",
     "LICENSE",
@@ -38,7 +37,6 @@
   ],
   "main": "src/legacy/Gamedig.js",
   "type": "module",
-  "bin": "bin/legacyCLI.mjs",
   "repository": "github:Stassi/node-gamedig",
   "scripts": {
     "format:check": "prettier --check .",
