@@ -20,10 +20,7 @@ export default class CoreProtocol extends EventEmitter {
     this.abortedPromise = null
     this.logger = new Logger()
     this.dnsResolver = new DnsResolver(this.logger)
-
-    // Sent to us by QueryRunner
     this.options = null
-    /** @type GlobalUdpSocket */
     this.udpSocket = null
     this.shortestRTT = 0
     this.usedTcp = false
