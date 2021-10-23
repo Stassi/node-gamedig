@@ -1,6 +1,5 @@
 import type { QueryOptions as LegacyQueryOptions, QueryResult } from 'gamedig'
-// @ts-ignore
-import GlobalUdpSocket from './legacy/GlobalUdpSocket.js'
+import UDPSocket from './UDPSocket'
 // @ts-ignore
 import ValveProtocol from './legacy/ValveProtocol.js'
 
@@ -16,9 +15,7 @@ export default function query({
 >): Promise<QueryResult> {
   const core = new ValveProtocol()
 
-  core.udpSocket = new GlobalUdpSocket({
-    port: undefined,
-  })
+  core.udpSocket = new UDPSocket()
 
   core.options = {
     attemptTimeout,
