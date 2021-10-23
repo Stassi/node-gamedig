@@ -1,8 +1,8 @@
+import type Buffer from 'node:buffer'
 import type { Socket } from 'node:dgram'
 import { createSocket } from 'node:dgram'
 import { promisify } from 'node:util'
-// @ts-ignore
-import HexUtil from './legacy/HexUtil.js'
+import hexLog from './hexLog'
 // @ts-ignore
 import Logger from './legacy/Logger.js'
 
@@ -36,7 +36,7 @@ export default class UDPSocket {
       udpSocket.on('message', (buffer, { address, port }) => {
         this.logger.debug((log: Log) => {
           log(`${address}:${port} <--UDP(${this.port})`)
-          log(HexUtil.debugDump(buffer))
+          log(hexLog(buffer))
         })
 
         for (const cb of this.callbacks) {
@@ -57,18 +57,13 @@ export default class UDPSocket {
     return this.socket
   }
 
-  async send(
-    buffer: string | Uint8Array,
-    address: any,
-    port: any,
-    debug: boolean
-  ) {
+  async send(buffer: Buffer | string, address: any, port: any, debug: boolean) {
     const socket = await this.getSocket()
 
     if (debug) {
       this.logger._print((log: Log) => {
         log(`${address}:${port} UDP(${this.port})-->`)
-        log(HexUtil.debugDump(buffer))
+        log(hexLog(buffer))
       })
     }
 
