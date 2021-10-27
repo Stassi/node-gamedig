@@ -1,7 +1,4 @@
-import compressjs from 'compressjs'
 import CoreProtocol from './CoreProtocol.js'
-
-const Bzip2 = compressjs.Bzip2
 
 const AppId = {
   Squad: 393380,
@@ -19,17 +16,9 @@ export default class ValveProtocol extends CoreProtocol {
     // delete in a few years if nothing ends up using it anymore
     this.goldsrcInfo = false
 
-    // unfortunately, the split format from goldsrc is still around, but we
-    // can detect that during the query
-    this.goldsrcSplits = false
-
     // some mods require a challenge, but don't provide them in the new format
     // at all, use the old dedicated challenge query if needed
     this.legacyChallenge = false
-
-    // 2006 engines don't pass packet switching size in split packet header
-    // while all others do, this need is detected automatically
-    this._skipSizeInSplitHeader = false
 
     this._challenge = ''
   }
@@ -114,22 +103,6 @@ export default class ValveProtocol extends CoreProtocol {
           state.raw.appId = betterAppId
         }
       }
-    }
-
-    // from https://developer.valvesoftware.com/wiki/Server_queries
-    if (
-      state.raw.protocol === 7 &&
-      (state.raw.appId === 215 ||
-        state.raw.appId === 17550 ||
-        state.raw.appId === 17700 ||
-        state.raw.appId === 240)
-    ) {
-      this._skipSizeInSplitHeader = true
-    }
-    this.logger.debug('INFO: ', state.raw)
-    if (state.raw.protocol === 48) {
-      this.logger.debug('GOLDSRC DETECTED - USING MODIFIED SPLIT FORMAT')
-      this.goldsrcSplits = true
     }
   }
 
@@ -470,10 +443,8 @@ export default class ValveProtocol extends CoreProtocol {
     if (challengeAtEnd) {
       if (this.byteorder === 'le') b.writeUInt32LE(challenge, offset)
       else b.writeUInt32BE(challenge, offset)
-      offset += 4
     }
 
-    const packetStorage = {}
     return await this.udpSend(
       b,
       (buffer) => {
@@ -483,71 +454,6 @@ export default class ValveProtocol extends CoreProtocol {
           // full package
           this.debugLog('Received full packet')
           return onResponse(reader.rest())
-        }
-        if (header === -2) {
-          // partial package
-          const uid = reader.uint(4)
-          if (!(uid in packetStorage)) packetStorage[uid] = {}
-          const packets = packetStorage[uid]
-
-          let bzip = false
-          if (!this.goldsrcSplits && uid & 0x80000000) bzip = true
-
-          let packetNum, payload, numPackets
-          if (this.goldsrcSplits) {
-            packetNum = reader.uint(1)
-            numPackets = packetNum & 0x0f
-            packetNum = (packetNum & 0xf0) >> 4
-            payload = reader.rest()
-          } else {
-            numPackets = reader.uint(1)
-            packetNum = reader.uint(1)
-            if (!this._skipSizeInSplitHeader) reader.skip(2)
-            if (packetNum === 0 && bzip) reader.skip(8)
-            payload = reader.rest()
-          }
-
-          packets[packetNum] = payload
-
-          this.debugLog(
-            () =>
-              'Received partial packet uid: 0x' +
-              uid.toString(16) +
-              ' num: ' +
-              packetNum
-          )
-          this.debugLog(
-            () =>
-              'Received ' +
-              Object.keys(packets).length +
-              '/' +
-              numPackets +
-              ' packets for this UID'
-          )
-
-          if (Object.keys(packets).length !== numPackets) return
-
-          // assemble the parts
-          const list = []
-          for (let i = 0; i < numPackets; i++) {
-            if (!(i in packets)) {
-              throw new Error('Missing packet #' + i)
-            }
-            list.push(packets[i])
-          }
-
-          let assembled = Buffer.concat(list)
-          if (bzip) {
-            this.debugLog('BZIP DETECTED - Extracing packet...')
-            try {
-              assembled = Buffer.from(Bzip2.decompressFile(assembled))
-            } catch (e) {
-              throw new Error('Invalid bzip packet')
-            }
-          }
-          const assembledReader = this.reader(assembled)
-          assembledReader.skip(4) // header
-          return onResponse(assembledReader.rest())
         }
       },
       onTimeout
