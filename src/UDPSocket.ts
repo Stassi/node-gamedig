@@ -4,7 +4,8 @@ import { promisify } from 'node:util'
 import hexLog from './hexLog'
 import Logger from './Logger'
 
-type Callbacks = Set<any>
+type Callback = (...params: any) => any
+type Callbacks = Set<Callback>
 type Log = (s: string) => void
 
 export default class UDPSocket {
@@ -55,7 +56,12 @@ export default class UDPSocket {
     return this.socket
   }
 
-  async send(buffer: Buffer | string, address: any, port: any, debug: boolean) {
+  async send(
+    buffer: Buffer | string,
+    address: string,
+    port: number,
+    debug: boolean
+  ) {
     const socket = await this.getSocket()
 
     if (debug) {
@@ -75,7 +81,7 @@ export default class UDPSocket {
     )
   }
 
-  addCallback(callback: any, debug: boolean) {
+  addCallback(callback: Callback, debug: boolean) {
     this.callbacks.add(callback)
 
     if (debug) {
@@ -84,7 +90,7 @@ export default class UDPSocket {
     }
   }
 
-  removeCallback(callback: any) {
+  removeCallback(callback: Callback) {
     this.callbacks.delete(callback)
     this.debuggingCallbacks.delete(callback)
     this.logger.debugEnabled = this.debuggingCallbacks.size > 0
