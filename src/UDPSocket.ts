@@ -1,4 +1,3 @@
-import type Buffer from 'node:buffer'
 import type { Socket } from 'node:dgram'
 import { createSocket } from 'node:dgram'
 import { promisify } from 'node:util'
