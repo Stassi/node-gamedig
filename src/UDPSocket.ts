@@ -3,8 +3,7 @@ import type { Socket } from 'node:dgram'
 import { createSocket } from 'node:dgram'
 import { promisify } from 'node:util'
 import hexLog from './hexLog'
-// @ts-ignore
-import Logger from './legacy/Logger.js'
+import Logger from './Logger'
 
 type Callbacks = Set<any>
 type Log = (s: string) => void
