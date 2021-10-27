@@ -1,12 +1,12 @@
+// @ts-nocheck
+import type { QueryOptions } from 'gamedig'
+import type UDPSocket from './UDPSocket'
 import { EventEmitter } from 'node:events'
-import got from 'got'
-import net from 'node:net'
-import DnsResolver from './DnsResolver'
-import HexUtil from './HexUtil'
-import Logger from './Logger'
-import Promises from './Promises'
-import Reader from './Reader'
-import Results from './Results'
+import DnsResolver from './legacy/DnsResolver.js'
+import Logger from './legacy/Logger.js'
+import Promises from './legacy/Promises.js'
+import Reader from './legacy/Reader.js'
+import Results from './legacy/Results.js'
 
 let uid = 0
 
@@ -137,26 +137,6 @@ class Core extends EventEmitter {
   reader(buffer) {
     return new Reader(this, buffer)
   }
-  translate(obj, trans) {
-    for (const from of Object.keys(trans)) {
-      const to = trans[from]
-      if (from in obj) {
-        if (to) obj[to] = obj[from]
-        delete obj[from]
-      }
-    }
-  }
-
-  trueTest(str) {
-    if (typeof str === 'boolean') return str
-    if (typeof str === 'number') return str !== 0
-    if (typeof str === 'string') {
-      if (str.toLowerCase() === 'true') return true
-      if (str.toLowerCase() === 'yes') return true
-      if (str === '1') return true
-    }
-    return false
-  }
 
   assertValidPort(port) {
     if (!port) {
@@ -166,94 +146,6 @@ class Core extends EventEmitter {
     }
     if (port < 1 || port > 65535) {
       throw new Error('Invalid tcp/ip port: ' + port)
-    }
-  }
-
-  /**
-   * @template T
-   * @param {function(NodeJS.Socket):Promise<T>} fn
-   * @param {number=} port
-   * @returns {Promise<T>}
-   */
-  async withTcp(fn, port) {
-    this.usedTcp = true
-    const address = this.options.address
-    if (!port) port = this.options.port
-    this.assertValidPort(port)
-
-    let socket, connectionTimeout
-    try {
-      socket = net.connect(port, address)
-      socket.setNoDelay(true)
-
-      // Prevent unhandled 'error' events from dumping straight to console
-      socket.on('error', () => {})
-
-      this.debugLog((log) => {
-        this.debugLog(address + ':' + port + ' TCP Connecting')
-        const writeHook = socket.write
-        socket.write = (...args) => {
-          log(address + ':' + port + ' TCP-->')
-          log(HexUtil.debugDump(args[0]))
-          writeHook.apply(socket, args)
-        }
-        socket.on('error', (e) => log('TCP Error:', e))
-        socket.on('close', () => log('TCP Closed'))
-        socket.on('data', (data) => {
-          log(address + ':' + port + ' <--TCP')
-          log(data)
-        })
-        socket.on('ready', () => log(address + ':' + port + ' TCP Connected'))
-      })
-
-      const connectionPromise = new Promise((resolve, reject) => {
-        socket.on('ready', resolve)
-        socket.on('close', () => reject(new Error('TCP Connection Refused')))
-      })
-      this.registerRtt(connectionPromise)
-      connectionTimeout = Promises.createTimeout(
-        this.options.socketTimeout,
-        'TCP Opening'
-      )
-      await Promise.race([
-        connectionPromise,
-        connectionTimeout,
-        this.abortedPromise,
-      ])
-      return await fn(socket)
-    } finally {
-      socket && socket.destroy()
-      connectionTimeout && connectionTimeout.cancel()
-    }
-  }
-
-  /**
-   * @template T
-   * @param {NodeJS.Socket} socket
-   * @param {Buffer|string} buffer
-   * @param {function(Buffer):T} ondata
-   * @returns Promise<T>
-   */
-  async tcpSend(socket, buffer, ondata) {
-    let timeout
-    try {
-      const promise = new Promise(async (resolve, reject) => {
-        let received = Buffer.from([])
-        const onData = (data) => {
-          received = Buffer.concat([received, data])
-          const result = ondata(received)
-          if (result !== undefined) {
-            socket.removeListener('data', onData)
-            resolve(result)
-          }
-        }
-        socket.on('data', onData)
-        socket.write(buffer)
-      })
-      timeout = Promises.createTimeout(this.options.socketTimeout, 'TCP')
-      return await Promise.race([promise, timeout, this.abortedPromise])
-    } finally {
-      timeout && timeout.cancel()
     }
   }
 
@@ -330,41 +222,6 @@ class Core extends EventEmitter {
     }
   }
 
-  async tcpPing() {
-    // This will give a much more accurate RTT than using the rtt of an http request.
-    if (!this.usedTcp) {
-      await this.withTcp(() => {})
-    }
-  }
-
-  async request(params) {
-    await this.tcpPing()
-
-    let requestPromise
-    try {
-      requestPromise = got({
-        ...params,
-        timeout: this.options.socketTimeout,
-      })
-      this.debugLog((log) => {
-        log(() => params.url + ' HTTP-->')
-        requestPromise
-          .then((response) =>
-            log(params.url + ' <--HTTP ' + response.statusCode)
-          )
-          .catch(() => {})
-      })
-      const wrappedPromise = requestPromise.then((response) => {
-        if (response.statusCode !== 200)
-          throw new Error('Bad status code: ' + response.statusCode)
-        return response.body
-      })
-      return await Promise.race([wrappedPromise, this.abortedPromise])
-    } finally {
-      requestPromise && requestPromise.cancel()
-    }
-  }
-
   /** @deprecated */
   debugLog(...args) {
     this.logger.debug(...args)
@@ -372,6 +229,12 @@ class Core extends EventEmitter {
 }
 
 export default class Protocol extends Core {
+  udpSocket: UDPSocket
+  options: Omit<
+    QueryOptions,
+    'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
+  >
+
   constructor() {
     super()
 
@@ -453,6 +316,7 @@ export default class Protocol extends Core {
       }
       state.raw.version = reader.string()
       const extraFlag = reader.uint(1)
+
       if (extraFlag & 0x80) state.gamePort = reader.uint(2)
       if (extraFlag & 0x10) state.raw.steamid = reader.uint(8).toString()
       if (extraFlag & 0x40) {
@@ -559,8 +423,7 @@ export default class Protocol extends Core {
       }
 
       const key = reader.string()
-      const value = reader.string()
-      rules[key] = value
+      rules[key] = reader.string()
     }
 
     // Battalion 1944 puts its info into rules fields for some reason
@@ -648,12 +511,7 @@ export default class Protocol extends Core {
     for (let i = 0; i < count; i++) {
       const mod = {}
       if (withHeader) {
-        const unknown = this.readDayzUint(reader, 4) // mod hash?
-        if (i !== count - 1) {
-          // For some reason this is 4 on all of them, but doesn't exist on the last one?
-          const flag = this.readDayzByte(reader)
-          //mod.flag = flag;
-        }
+        this.readDayzUint(reader, 4)
         mod.workshopId = this.readDayzUint(reader, 4)
       }
       mod.title = this.readDayzString(reader)
@@ -715,7 +573,6 @@ export default class Protocol extends Core {
   /**
    * Sends a request packet and returns only the response type expected
    * @param {number} type
-   * @param {boolean} sendChallenge
    * @param {?string|Buffer} payload
    * @param {number} expect
    * @param {boolean=} allowTimeout
@@ -765,7 +622,6 @@ export default class Protocol extends Core {
   /**
    * Sends a request packet and assembles partial responses
    * @param {number} type
-   * @param {boolean} sendChallenge
    * @param {?string|Buffer} payload
    * @param {function(Buffer)} onResponse
    * @param {function()} onTimeout
