@@ -22,5 +22,6 @@ export default function query({
     ...props,
   }
 
+  // @ts-ignore
   return protocol.runOnceSafe()
 }
