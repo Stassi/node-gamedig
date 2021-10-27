@@ -1,10 +1,10 @@
 // @ts-nocheck
 import type { QueryOptions } from 'gamedig'
 import type UDPSocket from './UDPSocket'
+import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
 import DnsResolver from './DnsResolver'
 import Logger from './Logger'
-import Promises from './legacy/Promises.js'
 import Reader from './Reader'
 import Results from './legacy/Results.js'
 
@@ -57,7 +57,7 @@ class Core extends EventEmitter {
     let timeout
     try {
       const promise = this.runOnce()
-      timeout = Promises.createTimeout(this.options.attemptTimeout, 'Attempt')
+      timeout = createTimeout(this.options.attemptTimeout, 'Attempt')
       const result = await Promise.race([promise, timeout])
       this.logger.debug('Query was successful')
       return result
@@ -193,7 +193,7 @@ class Core extends EventEmitter {
         }
         socket.addCallback(socketCallback, this.options.debug)
       })
-      timeout = Promises.createTimeout(this.options.socketTimeout, 'UDP')
+      timeout = createTimeout(this.options.socketTimeout, 'UDP')
       const wrappedTimeout = new Promise((resolve, reject) => {
         timeout.catch((e) => {
           this.debugLog('UDP timeout detected')
