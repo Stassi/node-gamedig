@@ -1,7 +1,6 @@
 import type { QueryOptions, QueryResult } from 'gamedig'
+import Protocol from './Protocol'
 import UDPSocket from './UDPSocket'
-// @ts-ignore
-import Protocol from './legacy/Protocol.js'
 
 export default function query({
   attemptTimeout = 10000,
