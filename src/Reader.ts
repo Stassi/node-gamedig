@@ -1,13 +1,13 @@
-import Buffer from 'node:buffer'
+// @ts-nocheck
 import Iconv from 'iconv-lite'
 import Long from 'long'
-import Varint from 'varint'
 
 function readUInt64BE(buffer, offset) {
   const high = buffer.readUInt32BE(offset)
   const low = buffer.readUInt32BE(offset + 4)
   return new Long(low, high, true)
 }
+
 function readUInt64LE(buffer, offset) {
   const low = buffer.readUInt32LE(offset)
   const high = buffer.readUInt32LE(offset + 4)
@@ -27,17 +27,8 @@ export default class Reader {
     this.i = 0
   }
 
-  offset() {
-    return this.i
-  }
-
   skip(i) {
     this.i += i
-  }
-
-  pascalString(bytesForSize, adjustment = 0) {
-    const length = this.uint(bytesForSize) + adjustment
-    return this.string(length)
   }
 
   string(arg) {
@@ -80,7 +71,7 @@ export default class Reader {
       this.i = end
     }
 
-    const slice = this.buffer.slice(start, end)
+    const slice: Buffer = this.buffer.slice(start, end)
     const enc = encoding
     if (enc === 'utf8' || enc === 'ucs2' || enc === 'binary') {
       return slice.toString(enc)
@@ -136,33 +127,11 @@ export default class Reader {
     return r
   }
 
-  varint() {
-    const out = Varint.decode(this.buffer, this.i)
-    this.i += Varint.decode.bytes
-    return out
-  }
-
-  /** @returns Buffer */
-  part(bytes) {
-    let r
-    if (this.remaining() >= bytes) {
-      r = this.buffer.slice(this.i, this.i + bytes)
-    } else {
-      r = Buffer.from([])
-    }
-    this.i += bytes
-    return r
-  }
-
   remaining() {
     return this.buffer.length - this.i
   }
 
   rest() {
     return this.buffer.slice(this.i)
-  }
-
-  done() {
-    return this.i >= this.buffer.length
   }
 }
