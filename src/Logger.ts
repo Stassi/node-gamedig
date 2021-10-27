@@ -1,6 +1,10 @@
-import HexUtil from './HexUtil.js'
+// @ts-nocheck
+import hexLog from './hexLog'
 
 export default class Logger {
+  debugEnabled: boolean
+  private readonly prefix: string
+
   constructor() {
     this.debugEnabled = false
     this.prefix = ''
@@ -31,7 +35,7 @@ export default class Logger {
       if (arg instanceof Error) {
         out.push(arg.stack)
       } else if (arg instanceof Buffer) {
-        out.push(HexUtil.debugDump(arg))
+        out.push(hexLog(arg))
       } else if (typeof arg == 'function') {
         const result = arg.call(undefined, (...args) => this._print(...args))
         if (result !== undefined)
