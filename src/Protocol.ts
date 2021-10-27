@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 import DnsResolver from './legacy/DnsResolver.js'
 import Logger from './legacy/Logger.js'
 import Promises from './legacy/Promises.js'
-import Reader from './legacy/Reader.js'
+import Reader from './Reader'
 import Results from './legacy/Results.js'
 
 let uid = 0
