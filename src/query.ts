@@ -1,7 +1,7 @@
 import type { QueryOptions, QueryResult } from 'gamedig'
 import UDPSocket from './UDPSocket'
 // @ts-ignore
-import ValveProtocol from './legacy/ValveProtocol.js'
+import Protocol from './legacy/Protocol.js'
 
 export default function query({
   attemptTimeout = 10000,
@@ -12,16 +12,16 @@ export default function query({
   QueryOptions,
   'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
 >): Promise<QueryResult> {
-  const core = new ValveProtocol()
+  const protocol = new Protocol()
 
-  core.udpSocket = new UDPSocket()
+  protocol.udpSocket = new UDPSocket()
 
-  core.options = {
+  protocol.options = {
     attemptTimeout,
     port,
     socketTimeout,
     ...props,
   }
 
-  return core.runOnceSafe()
+  return protocol.runOnceSafe()
 }
