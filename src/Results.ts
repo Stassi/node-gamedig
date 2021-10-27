@@ -1,3 +1,4 @@
+// @ts-nocheck
 class Player {
   name = ''
   raw = {}
