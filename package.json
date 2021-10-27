@@ -45,16 +45,10 @@
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "dependencies": {
-    "@types/cheerio": "^0.22.30",
     "@types/gamedig": "^3.0.1",
-    "cheerio": "^1.0.0-rc.3",
-    "compressjs": "^1.0.2",
-    "gbxremote": "^0.2.1",
     "got": "^11.5.1",
     "iconv-lite": "^0.6.2",
     "long": "^4.0.0",
-    "minimist": "^1.2.5",
-    "moment": "^2.27.0",
     "punycode": "^2.1.1",
     "varint": "^6.0.0"
   },
