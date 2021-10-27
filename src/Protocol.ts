@@ -5,8 +5,8 @@ import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
 import DnsResolver from './DnsResolver'
 import Logger from './Logger'
+import Players from './legacy/Players.js'
 import Reader from './Reader'
-import Results from './legacy/Results.js'
 
 let uid = 0
 
@@ -15,6 +15,18 @@ const AppId = {
   Bat1944: 489940,
   Ship: 2400,
   DayZ: 221100,
+}
+
+function results() {
+  return {
+    bots: new Players(),
+    map: '',
+    maxplayers: 0,
+    name: '',
+    password: false,
+    players: new Players(),
+    raw: {},
+  }
 }
 
 class Core extends EventEmitter {
@@ -82,7 +94,7 @@ class Core extends EventEmitter {
       if (resolved.port) options.port = resolved.port
     }
 
-    const state = new Results()
+    const state = results()
 
     await this.run(state)
 
