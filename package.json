@@ -46,7 +46,6 @@
   },
   "dependencies": {
     "@types/gamedig": "^3.0.1",
-    "got": "^11.5.1",
     "iconv-lite": "^0.6.2",
     "long": "^4.0.0",
     "punycode": "^2.1.1",
