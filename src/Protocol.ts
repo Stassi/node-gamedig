@@ -2,7 +2,7 @@
 import type { QueryOptions } from 'gamedig'
 import type UDPSocket from './UDPSocket'
 import { EventEmitter } from 'node:events'
-import DnsResolver from './legacy/DnsResolver.js'
+import DnsResolver from './DnsResolver'
 import Logger from './Logger'
 import Promises from './legacy/Promises.js'
 import Reader from './Reader'
@@ -77,10 +77,7 @@ class Core extends EventEmitter {
   async runOnce() {
     const options = this.options
     if ('host' in options && !('address' in options)) {
-      const resolved = await this.dnsResolver.resolve(
-        options.host,
-        this.srvRecord
-      )
+      const resolved = await this.dnsResolver.resolve(options.host)
       options.address = resolved.address
       if (resolved.port) options.port = resolved.port
     }
