@@ -251,20 +251,9 @@ export default class Protocol extends Core {
     'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
   >
   private _challenge: number | string
-  private readonly goldSrcInfo: false
-  private readonly legacyChallenge: false
 
   constructor() {
     super()
-
-    // legacy goldsrc info response -- basically not used by ANYTHING now,
-    // as most (all?) goldsrc servers respond with the source info reponse
-    // delete in a few years if nothing ends up using it anymore
-    this.goldsrcInfo = false
-
-    // some mods require a challenge, but don't provide them in the new format
-    // at all, use the old dedicated challenge query if needed
-    this.legacyChallenge = false
 
     this._challenge = ''
   }
@@ -272,7 +261,6 @@ export default class Protocol extends Core {
   async run(state) {
     if (!this.options.port) this.options.port = 27015
     await this.queryInfo(state)
-    await this.queryChallenge()
     await this.queryPlayers(state)
     await this.queryRules(state)
     await this.cleanup(state)
@@ -280,18 +268,11 @@ export default class Protocol extends Core {
 
   async queryInfo(/** Results */ state) {
     this.debugLog('Requesting info ...')
-    const b = await this.sendPacket(
-      0x54,
-      'Source Engine Query\0',
-      this.goldSrcInfo ? 0x6d : 0x49,
-      false
-    )
+    const b = await this.sendPacket(0x54, 'Source Engine Query\0', 0x49, false)
 
     const reader = this.reader(b)
 
-    if (this.goldSrcInfo) state.raw.address = reader.string()
-    else state.raw.protocol = reader.uint(1)
-
+    state.raw.protocol = reader.uint(1)
     state.name = reader.string()
     state.map = reader.string()
     state.raw.folder = reader.string()
@@ -299,66 +280,34 @@ export default class Protocol extends Core {
     state.raw.appId = reader.uint(2)
     state.raw.numplayers = reader.uint(1)
     state.maxplayers = reader.uint(1)
-
-    if (this.goldSrcInfo) state.raw.protocol = reader.uint(1)
-    else state.raw.numbots = reader.uint(1)
-
+    state.raw.numbots = reader.uint(1)
     state.raw.listentype = reader.uint(1)
     state.raw.environment = reader.uint(1)
-    if (!this.goldSrcInfo) {
-      state.raw.listentype = String.fromCharCode(state.raw.listentype)
-      state.raw.environment = String.fromCharCode(state.raw.environment)
-    }
-
+    state.raw.listentype = String.fromCharCode(state.raw.listentype)
+    state.raw.environment = String.fromCharCode(state.raw.environment)
     state.password = !!reader.uint(1)
-    if (this.goldSrcInfo) {
-      state.raw.ismod = reader.uint(1)
-      if (state.raw.ismod) {
-        state.raw.modlink = reader.string()
-        state.raw.moddownload = reader.string()
-        reader.skip(1)
-        state.raw.modversion = reader.uint(4)
-        state.raw.modsize = reader.uint(4)
-        state.raw.modtype = reader.uint(1)
-        state.raw.moddll = reader.uint(1)
-      }
-    }
     state.raw.secure = reader.uint(1)
 
-    if (this.goldSrcInfo) {
-      state.raw.numbots = reader.uint(1)
-    } else {
-      if (state.raw.appId === AppId.Ship) {
-        state.raw.shipmode = reader.uint(1)
-        state.raw.shipwitnesses = reader.uint(1)
-        state.raw.shipduration = reader.uint(1)
-      }
-      state.raw.version = reader.string()
-      const extraFlag = reader.uint(1)
-
-      if (extraFlag & 0x80) state.gamePort = reader.uint(2)
-      if (extraFlag & 0x10) state.raw.steamid = reader.uint(8).toString()
-      if (extraFlag & 0x40) {
-        state.raw.sourcetvport = reader.uint(2)
-        state.raw.sourcetvname = reader.string()
-      }
-      if (extraFlag & 0x20) state.raw.tags = reader.string().split(',')
-      if (extraFlag & 0x01) {
-        const gameId = reader.uint(8)
-        const betterAppId = gameId.getLowBitsUnsigned() & 0xffffff
-        if (betterAppId) {
-          state.raw.appId = betterAppId
-        }
-      }
+    if (state.raw.appId === AppId.Ship) {
+      state.raw.shipmode = reader.uint(1)
+      state.raw.shipwitnesses = reader.uint(1)
+      state.raw.shipduration = reader.uint(1)
     }
-  }
-
-  async queryChallenge() {
-    if (this.legacyChallenge) {
-      // sendPacket will catch the response packet and
-      // save the challenge for us
-      this.debugLog('Requesting legacy challenge key ...')
-      await this.sendPacket(0x57, null, 0x41, false)
+    state.raw.version = reader.string()
+    const extraFlag = reader.uint(1)
+    if (extraFlag & 0x80) state.gamePort = reader.uint(2)
+    if (extraFlag & 0x10) state.raw.steamid = reader.uint(8).toString()
+    if (extraFlag & 0x40) {
+      state.raw.sourcetvport = reader.uint(2)
+      state.raw.sourcetvname = reader.string()
+    }
+    if (extraFlag & 0x20) state.raw.tags = reader.string().split(',')
+    if (extraFlag & 0x01) {
+      const gameId = reader.uint(8)
+      const betterAppId = gameId.getLowBitsUnsigned() & 0xffffff
+      if (betterAppId) {
+        state.raw.appId = betterAppId
+      }
     }
   }
 
