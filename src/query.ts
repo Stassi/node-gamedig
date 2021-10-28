@@ -15,12 +15,10 @@ export default function query({
 
   protocol.udpSocket = new UDPSocket()
 
-  protocol.options = {
+  return protocol.runOnceSafe({
     attemptTimeout,
     port,
     socketTimeout,
     ...props,
-  }
-
-  return protocol.runOnceSafe()
+  })
 }

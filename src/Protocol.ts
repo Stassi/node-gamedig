@@ -46,7 +46,14 @@ class Core extends EventEmitter {
   }
 
   // Runs a single attempt with a timeout and cleans up afterward
-  async runOnceSafe(): Promise<QueryResult> {
+  async runOnceSafe(
+    options: Omit<
+      QueryOptions,
+      'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
+    >
+  ): Promise<QueryResult> {
+    this.options = options
+
     if (this.options.debug) {
       this.logger.debugEnabled = true
     }
