@@ -250,6 +250,9 @@ export default class Protocol extends Core {
     QueryOptions,
     'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
   >
+  private _challenge: number | string
+  private readonly goldSrcInfo: false
+  private readonly legacyChallenge: false
 
   constructor() {
     super()
@@ -280,13 +283,13 @@ export default class Protocol extends Core {
     const b = await this.sendPacket(
       0x54,
       'Source Engine Query\0',
-      this.goldsrcInfo ? 0x6d : 0x49,
+      this.goldSrcInfo ? 0x6d : 0x49,
       false
     )
 
     const reader = this.reader(b)
 
-    if (this.goldsrcInfo) state.raw.address = reader.string()
+    if (this.goldSrcInfo) state.raw.address = reader.string()
     else state.raw.protocol = reader.uint(1)
 
     state.name = reader.string()
@@ -297,18 +300,18 @@ export default class Protocol extends Core {
     state.raw.numplayers = reader.uint(1)
     state.maxplayers = reader.uint(1)
 
-    if (this.goldsrcInfo) state.raw.protocol = reader.uint(1)
+    if (this.goldSrcInfo) state.raw.protocol = reader.uint(1)
     else state.raw.numbots = reader.uint(1)
 
     state.raw.listentype = reader.uint(1)
     state.raw.environment = reader.uint(1)
-    if (!this.goldsrcInfo) {
+    if (!this.goldSrcInfo) {
       state.raw.listentype = String.fromCharCode(state.raw.listentype)
       state.raw.environment = String.fromCharCode(state.raw.environment)
     }
 
     state.password = !!reader.uint(1)
-    if (this.goldsrcInfo) {
+    if (this.goldSrcInfo) {
       state.raw.ismod = reader.uint(1)
       if (state.raw.ismod) {
         state.raw.modlink = reader.string()
@@ -322,7 +325,7 @@ export default class Protocol extends Core {
     }
     state.raw.secure = reader.uint(1)
 
-    if (this.goldsrcInfo) {
+    if (this.goldSrcInfo) {
       state.raw.numbots = reader.uint(1)
     } else {
       if (state.raw.appId === AppId.Ship) {
@@ -611,7 +614,7 @@ export default class Protocol extends Core {
               expect.toString(16)
           )
           if (type === 0x41) {
-            const key = reader.uint(4)
+            const key: number = reader.uint(4)
             if (this._challenge !== key) {
               this.debugLog('Received new challenge key: 0x' + key.toString(16))
               this._challenge = key
