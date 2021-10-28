@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { QueryOptions } from 'gamedig'
+import type { QueryOptions, QueryResult } from 'gamedig'
 import type UDPSocket from './UDPSocket'
 import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
@@ -46,7 +46,7 @@ class Core extends EventEmitter {
   }
 
   // Runs a single attempt with a timeout and cleans up afterward
-  async runOnceSafe() {
+  async runOnceSafe(): Promise<QueryResult> {
     if (this.options.debug) {
       this.logger.debugEnabled = true
     }
