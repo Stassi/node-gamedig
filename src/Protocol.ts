@@ -30,6 +30,8 @@ function results() {
 }
 
 class Core extends EventEmitter {
+  private readonly udpSocket: UDPSocket
+
   constructor() {
     super()
     this.encoding = 'utf8'
@@ -40,9 +42,9 @@ class Core extends EventEmitter {
     this.logger = new Logger()
     this.dnsResolver = new DnsResolver(this.logger)
     this.options = null
-    this.udpSocket = null
     this.shortestRTT = 0
     this.usedTcp = false
+    this.udpSocket = new UDPSocket()
   }
 
   // Runs a single attempt with a timeout and cleans up afterward
@@ -179,8 +181,7 @@ class Core extends EventEmitter {
 
     if (typeof buffer === 'string') buffer = Buffer.from(buffer, 'binary')
 
-    const socket = this.udpSocket
-    await socket.send(buffer, address, port, this.options.debug)
+    await this.udpSocket.send(buffer, address, port, this.options.debug)
 
     if (!onPacket && !onTimeout) {
       return null
@@ -210,7 +211,7 @@ class Core extends EventEmitter {
             reject(e)
           }
         }
-        socket.addCallback(socketCallback, this.options.debug)
+        this.udpSocket.addCallback(socketCallback, this.options.debug)
       })
       timeout = createTimeout(this.options.socketTimeout, 'UDP')
       const wrappedTimeout = new Promise((resolve, reject) => {
@@ -234,7 +235,7 @@ class Core extends EventEmitter {
       return await Promise.race([promise, wrappedTimeout, this.abortedPromise])
     } finally {
       timeout && timeout.cancel()
-      socketCallback && socket.removeCallback(socketCallback)
+      socketCallback && this.udpSocket.removeCallback(socketCallback)
     }
   }
 
@@ -245,7 +246,6 @@ class Core extends EventEmitter {
 }
 
 export default class Protocol extends Core {
-  udpSocket: UDPSocket
   options: Omit<
     QueryOptions,
     'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
@@ -264,8 +264,6 @@ export default class Protocol extends Core {
     this.legacyChallenge = false
 
     this._challenge = ''
-
-    this.udpSocket = new UDPSocket()
   }
 
   async run(state) {
