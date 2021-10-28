@@ -1,12 +1,12 @@
 // @ts-nocheck
 import type { QueryOptions, QueryResult } from 'gamedig'
-import type UDPSocket from './UDPSocket'
 import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
 import DnsResolver from './DnsResolver'
 import Logger from './Logger'
 import Players from './legacy/Players.js'
 import Reader from './Reader'
+import UDPSocket from './UDPSocket'
 
 let uid = 0
 
@@ -264,6 +264,8 @@ export default class Protocol extends Core {
     this.legacyChallenge = false
 
     this._challenge = ''
+
+    this.udpSocket = new UDPSocket()
   }
 
   async run(state) {

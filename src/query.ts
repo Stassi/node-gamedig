@@ -1,6 +1,5 @@
 import type { QueryOptions, QueryResult } from 'gamedig'
 import Protocol from './Protocol'
-import UDPSocket from './UDPSocket'
 
 export default function query({
   attemptTimeout = 10000,
@@ -11,11 +10,7 @@ export default function query({
   QueryOptions,
   'givenPortOnly' | 'maxAttempts' | 'requestRules' | 'type'
 >): Promise<QueryResult> {
-  const protocol = new Protocol()
-
-  protocol.udpSocket = new UDPSocket()
-
-  return protocol.runOnceSafe({
+  return new Protocol().runOnceSafe({
     attemptTimeout,
     port,
     socketTimeout,
