@@ -120,7 +120,7 @@ class Core extends EventEmitter {
 
   async run(/** Results */ state) {}
 
-  /** Param can be a time in ms, or a promise (which will be timed) */
+  // Param can be a time in ms, or a promise (which will be timed)
   registerRtt(param) {
     if (param.then) {
       const start = Date.now()
@@ -139,9 +139,7 @@ class Core extends EventEmitter {
     }
   }
 
-  // utils
-  /** @returns {Reader} */
-  reader(buffer) {
+  reader(buffer): Reader {
     return new Reader(this, buffer)
   }
 
@@ -156,14 +154,11 @@ class Core extends EventEmitter {
     }
   }
 
-  /**
-   * @param {Buffer|string} buffer
-   * @param {function(Buffer):T=} onPacket
-   * @param {(function():T)=} onTimeout
-   * @returns Promise<T>
-   * @template T
-   */
-  async udpSend(buffer, onPacket, onTimeout) {
+  async udpSend<T>(
+    buffer: Buffer | string,
+    onPacket: ((b: Buffer) => T) | undefined,
+    onTimeout: (() => T) | undefined
+  ): Promise<T> {
     const address = this.options.address
     const port = this.options.port
     this.assertValidPort(port)
@@ -229,7 +224,7 @@ class Core extends EventEmitter {
   }
 
   /** @deprecated */
-  debugLog(...args) {
+  debugLog(...args): void {
     this.logger.debug(...args)
   }
 }
@@ -366,15 +361,13 @@ export default class Protocol extends Core {
     }
   }
 
-  /**
-   * Sends a request packet and returns only the response type expected
-   * @param {number} type
-   * @param {?string|Buffer} payload
-   * @param {number} expect
-   * @param {boolean=} allowTimeout
-   * @returns Buffer|null
-   **/
-  async sendPacket(type, payload, expect, allowTimeout) {
+  // Sends a request packet and returns only the response type expected
+  async sendPacket(
+    type: number,
+    payload: (string | Buffer) | null,
+    expect: number,
+    allowTimeout: boolean | undefined
+  ): Promise<Buffer | null> {
     for (let keyRetry = 0; keyRetry < 3; keyRetry++) {
       let receivedNewChallengeKey = false
       const response = await this.sendPacketRaw(
@@ -415,14 +408,13 @@ export default class Protocol extends Core {
     throw new Error('Received too many challenge key responses')
   }
 
-  /**
-   * Sends a request packet and assembles partial responses
-   * @param {number} type
-   * @param {?string|Buffer} payload
-   * @param {function(Buffer)} onResponse
-   * @param {function()} onTimeout
-   **/
-  async sendPacketRaw(type, payload, onResponse, onTimeout) {
+  // Sends a request packet and assembles partial responses
+  async sendPacketRaw(
+    type: number,
+    payload: (string | Buffer) | null,
+    onResponse: (b: Buffer) => any,
+    onTimeout: () => any
+  ) {
     const challengeAtBeginning = type === 0x55 || type === 0x56
     const challengeAtEnd = type === 0x54 && !!this._challenge
 
