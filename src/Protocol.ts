@@ -118,7 +118,7 @@ class Core extends EventEmitter {
     return state
   }
 
-  async run(/** Results */ state) {}
+  async run(state) {}
 
   // Param can be a time in ms, or a promise (which will be timed)
   registerRtt(param) {
