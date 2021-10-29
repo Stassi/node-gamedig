@@ -25,27 +25,29 @@ export default class UDPSocket {
 
   async getSocket() {
     if (!this.socket) {
-      const udpSocket = createSocket({
-        reuseAddr: true,
-        type: 'udp4',
-      })
+      const udpSocket: Socket = createSocket(
+        {
+          reuseAddr: true,
+          type: 'udp4',
+        },
+        (
+          buffer: Buffer,
+          { address, port }: { address: string; port: number }
+        ) => {
+          this.logger.debug((log: Log) => {
+            log(`${address}:${port} <--UDP(${this.port})`)
+            log(hexLog(buffer))
+          })
 
-      udpSocket.unref()
-
-      udpSocket.on('message', (buffer, { address, port }) => {
-        this.logger.debug((log: Log) => {
-          log(`${address}:${port} <--UDP(${this.port})`)
-          log(hexLog(buffer))
-        })
-
-        for (const cb of this.callbacks) {
-          cb(address, port, buffer)
+          for (const cb of this.callbacks) {
+            cb(address, port, buffer)
+          }
         }
-      })
-
-      udpSocket.on('error', (e) => {
-        this.logger.debug('UDP ERROR:', e)
-      })
+      )
+        .on('error', (e) => {
+          this.logger.debug('UDP ERROR:', e)
+        })
+        .unref()
 
       // @ts-ignore
       await promisify(udpSocket.bind).bind(udpSocket)(this.port)
