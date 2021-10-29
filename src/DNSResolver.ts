@@ -5,7 +5,7 @@ import util from 'node:util'
 
 const dnsLookupAsync = util.promisify(lookup)
 
-export default class DnsResolver {
+export default class DNSResolver {
   private logger: Logger
 
   constructor(logger: Logger) {

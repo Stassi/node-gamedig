@@ -2,7 +2,7 @@
 import type { QueryOptions, QueryResult } from 'gamedig'
 import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
-import DnsResolver from './DnsResolver'
+import DNSResolver from './DNSResolver'
 import Logger from './Logger'
 import Players from './Players'
 import Reader from './Reader'
@@ -21,7 +21,7 @@ class Core extends EventEmitter {
     this.srvRecord = null
     this.abortedPromise = null
     this.logger = new Logger()
-    this.dnsResolver = new DnsResolver(this.logger)
+    this.dnsResolver = new DNSResolver(this.logger)
     this.options = null
     this.shortestRTT = 0
     this.usedTcp = false
