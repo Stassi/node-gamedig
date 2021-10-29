@@ -10,25 +10,6 @@ import UDPSocket from './UDPSocket'
 
 let uid = 0
 
-const AppId = {
-  Squad: 393380,
-  Bat1944: 489940,
-  Ship: 2400,
-  DayZ: 221100,
-}
-
-function results() {
-  return {
-    bots: new Players(),
-    map: '',
-    maxplayers: 0,
-    name: '',
-    password: false,
-    players: new Players(),
-    raw: {},
-  }
-}
-
 class Core extends EventEmitter {
   private readonly udpSocket: UDPSocket
 
@@ -103,7 +84,15 @@ class Core extends EventEmitter {
       if (resolved.port) options.port = resolved.port
     }
 
-    const state = results()
+    const state = {
+      bots: new Players(),
+      map: '',
+      maxplayers: 0,
+      name: '',
+      password: false,
+      players: new Players(),
+      raw: {},
+    }
 
     await this.run(state)
 
@@ -287,12 +276,6 @@ export default class Protocol extends Core {
     state.raw.environment = String.fromCharCode(state.raw.environment)
     state.password = !!reader.uint(1)
     state.raw.secure = reader.uint(1)
-
-    if (state.raw.appId === AppId.Ship) {
-      state.raw.shipmode = reader.uint(1)
-      state.raw.shipwitnesses = reader.uint(1)
-      state.raw.shipduration = reader.uint(1)
-    }
     state.raw.version = reader.string()
     const extraFlag = reader.uint(1)
     if (extraFlag & 0x80) state.gamePort = reader.uint(2)
@@ -317,13 +300,7 @@ export default class Protocol extends Core {
     this.debugLog('Requesting player list ...')
     const b = await this.sendPacket(0x55, null, 0x44, true)
 
-    if (b === null) {
-      // Player query timed out
-      // CSGO doesn't respond to player query if host_players_show is not 2
-      // Conan Exiles never responds to player query
-      // Just skip it, and we'll fill with dummy objects in cleanup()
-      return
-    }
+    if (b === null) return
 
     const reader = this.reader(b)
     const num = reader.uint(1)
@@ -350,14 +327,7 @@ export default class Protocol extends Core {
   }
 
   async queryRules(/** Results */ state) {
-    const appId = state.raw.appId
-    if (
-      appId === AppId.Squad ||
-      appId === AppId.Bat1944 ||
-      this.options.requestRules
-    ) {
-      // let's get 'em
-    } else {
+    if (!this.options.requestRules) {
       return
     }
 
@@ -365,155 +335,16 @@ export default class Protocol extends Core {
     state.raw.rules = rules
     this.debugLog('Requesting rules ...')
     const b = await this.sendPacket(0x56, null, 0x45, true)
-    if (b === null) return // timed out - the server probably has rules disabled
-
-    const dayZPayload = []
-    let dayZPayloadEnded = false
-
+    if (b === null) {
+      // timed out - the server probably has rules disabled
+      return
+    }
     const reader = this.reader(b)
     const num = reader.uint(2)
     for (let i = 0; i < num; i++) {
-      if (appId === AppId.DayZ && !dayZPayloadEnded) {
-        const one = reader.uint(1)
-        const two = reader.uint(1)
-        const three = reader.uint(1)
-        if (one !== 0 && two !== 0 && three === 0) {
-          while (true) {
-            const byte = reader.uint(1)
-            if (byte === 0) break
-            dayZPayload.push(byte)
-          }
-          continue
-        } else {
-          reader.skip(-3)
-          dayZPayloadEnded = true
-        }
-      }
-
       const key = reader.string()
       rules[key] = reader.string()
     }
-
-    // Battalion 1944 puts its info into rules fields for some reason
-    if (appId === AppId.Bat1944) {
-      if ('bat_name_s' in rules) {
-        state.name = rules.bat_name_s
-        delete rules.bat_name_s
-        if ('bat_player_count_s' in rules) {
-          state.raw.numplayers = parseInt(rules.bat_player_count_s)
-          delete rules.bat_player_count_s
-        }
-        if ('bat_max_players_i' in rules) {
-          state.maxplayers = parseInt(rules.bat_max_players_i)
-          delete rules.bat_max_players_i
-        }
-        if ('bat_has_password_s' in rules) {
-          state.password = rules.bat_has_password_s === 'Y'
-          delete rules.bat_has_password_s
-        }
-        // apparently map is already right, and this var is often wrong
-        delete rules.bat_map_s
-      }
-    }
-
-    // Squad keeps its password in a separate field
-    if (appId === AppId.Squad) {
-      if (rules.Password_b === 'true') {
-        state.password = true
-      }
-    }
-
-    if (appId === AppId.DayZ) {
-      state.raw.dayzMods = this.readDayzMods(Buffer.from(dayZPayload))
-
-      if (state.raw.tags) {
-        for (const tag of state.raw.tags) {
-          if (tag.startsWith('lqs')) {
-            const value = parseInt(tag.replace('lqs', ''))
-            if (!isNaN(value)) {
-              state.raw.queue = value
-            }
-          }
-          if (tag.startsWith('etm')) {
-            const value = parseInt(tag.replace('etm', ''))
-            if (!isNaN(value)) {
-              state.raw.dayAcceleration = value
-            }
-          }
-          if (tag.startsWith('entm')) {
-            const value = parseInt(tag.replace('entm', ''))
-            if (!isNaN(value)) {
-              state.raw.nightAcceleration = value
-            }
-          }
-        }
-      }
-    }
-  }
-
-  readDayzMods(/** Buffer */ buffer) {
-    if (!buffer.length) {
-      return {}
-    }
-
-    this.logger.debug('DAYZ BUFFER')
-    this.logger.debug(buffer)
-
-    const reader = this.reader(buffer)
-    const version = this.readDayzByte(reader)
-    const overflow = this.readDayzByte(reader)
-    const dlc1 = this.readDayzByte(reader)
-    const dlc2 = this.readDayzByte(reader)
-    this.logger.debug('version ' + version)
-    this.logger.debug('overflow ' + overflow)
-    this.logger.debug('dlc1 ' + dlc1)
-    this.logger.debug('dlc2 ' + dlc2)
-    const mods = []
-    mods.push(...this.readDayzModsSection(reader, true))
-    mods.push(...this.readDayzModsSection(reader, false))
-    return mods
-  }
-  readDayzModsSection(reader, withHeader) {
-    const out = []
-    const count = this.readDayzByte(reader)
-    for (let i = 0; i < count; i++) {
-      const mod = {}
-      if (withHeader) {
-        this.readDayzUint(reader, 4)
-        mod.workshopId = this.readDayzUint(reader, 4)
-      }
-      mod.title = this.readDayzString(reader)
-      out.push(mod)
-    }
-    return out
-  }
-  readDayzUint(reader, bytes) {
-    const out = []
-    for (let i = 0; i < bytes; i++) {
-      out.push(this.readDayzByte(reader))
-    }
-    const buf = Buffer.from(out)
-    const r2 = this.reader(buf)
-    return r2.uint(bytes)
-  }
-  readDayzByte(reader) {
-    const byte = reader.uint(1)
-    if (byte === 1) {
-      const byte2 = reader.uint(1)
-      if (byte2 === 1) return 1
-      if (byte2 === 2) return 0
-      if (byte2 === 3) return 0xff
-      return 0 // ?
-    }
-    return byte
-  }
-  readDayzString(reader) {
-    const length = this.readDayzByte(reader)
-    const out = []
-    for (let i = 0; i < length; i++) {
-      out.push(this.readDayzByte(reader))
-    }
-    return Buffer.from(out).toString('utf8')
   }
 
   async cleanup(/** Results */ state) {
