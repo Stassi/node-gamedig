@@ -4,7 +4,7 @@ import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
 import DnsResolver from './DnsResolver'
 import Logger from './Logger'
-import Players from './legacy/Players.js'
+import Players from './Players'
 import Reader from './Reader'
 import UDPSocket from './UDPSocket'
 
