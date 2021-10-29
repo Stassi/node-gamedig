@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { QueryOptions, QueryResult } from 'gamedig'
-import createTimeout from './createTimeout'
 import { EventEmitter } from 'node:events'
+import createTimeout from './createTimeout'
 import DNSResolver from './DNSResolver'
 import Logger from './Logger'
 import Players from './Players'
