@@ -2,6 +2,7 @@ class Player {
   name = ''
   raw = {}
 
+  // @ts-ignore
   constructor(data) {
     if (typeof data === 'string') {
       this.name = data
@@ -14,6 +15,7 @@ class Player {
 }
 
 export default class Players extends Array {
+  // @ts-ignore
   push(data) {
     super.push(new Player(data))
   }
