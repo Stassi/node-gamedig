@@ -315,9 +315,6 @@ export default class Protocol extends Core {
       // connecting players don't count as players.
       if (!name) continue
 
-      // CSGO sometimes adds a bot named 'Max Players' if host_players_show is not 2
-      if (state.raw.steamappid === 730 && name === 'Max Players') continue
-
       state.raw.players.push({
         name: name,
         score: score,
