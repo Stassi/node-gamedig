@@ -250,7 +250,7 @@ export default class Protocol extends Core {
     await this.cleanup(state)
   }
 
-  async queryInfo(/** Results */ state) {
+  async queryInfo(state) {
     this.debugLog('Requesting info ...')
     const b = await this.sendPacket(0x54, 'Source Engine Query\0', 0x49, false)
 
@@ -289,7 +289,7 @@ export default class Protocol extends Core {
     }
   }
 
-  async queryPlayers(/** Results */ state) {
+  async queryPlayers(state) {
     state.raw.players = []
 
     this.debugLog('Requesting player list ...')
@@ -318,7 +318,7 @@ export default class Protocol extends Core {
     }
   }
 
-  async queryRules(/** Results */ state) {
+  async queryRules(state) {
     if (!this.options.requestRules) {
       return
     }
@@ -339,7 +339,7 @@ export default class Protocol extends Core {
     }
   }
 
-  async cleanup(/** Results */ state) {
+  async cleanup(state) {
     // Organize players / hidden players into player / bot arrays
     const botProbability = (p) => {
       if (p.time === -1) return Number.MAX_VALUE
